@@ -4,6 +4,8 @@ import com.itheima.reggie_take_out.common.CommonReturn;
 import com.itheima.reggie_take_out.dto.SetmealDto;
 import com.itheima.reggie_take_out.service.SetmealDtoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,6 +20,7 @@ public class SetmealController {
     @Autowired
     private SetmealDtoService setmealDtoService;
 
+    @CacheEvict(value = "setmealCache", allEntries = true)
     @PostMapping
     public CommonReturn<?> save(@RequestBody SetmealDto setmealDto) {
         return setmealDtoService.saveWithDish(setmealDto);
@@ -28,6 +31,7 @@ public class SetmealController {
         return setmealDtoService.page(page, pageSize, name);
     }
 
+    @CacheEvict(value = "setmealCache", allEntries = true)
     @DeleteMapping
     public CommonReturn<?> delete(@RequestParam List<Long> ids) {
         return setmealDtoService.deleteByIds(ids);
@@ -39,6 +43,7 @@ public class SetmealController {
         return setmealDtoService.updateStatus(ids, status);
     }
 
+    @Cacheable(value = "setmealCache", key = "#categoryId+'_'+#status")
     @GetMapping("/list")
     public CommonReturn<?> getByCategoryId(@RequestParam Long categoryId, @RequestParam Integer status) {
         return setmealDtoService.getByCategoryId(categoryId, status);
@@ -49,6 +54,7 @@ public class SetmealController {
         return setmealDtoService.getSetmealById(id);
     }
 
+    @CacheEvict(value = "setmealCache", allEntries = true)
     @PutMapping
     public CommonReturn<?> updateSetmeal(@RequestBody SetmealDto setmealDto) {
         return setmealDtoService.updateSetmeal(setmealDto);

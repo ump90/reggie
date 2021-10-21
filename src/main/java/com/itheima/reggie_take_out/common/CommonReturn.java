@@ -2,6 +2,7 @@ package com.itheima.reggie_take_out.common;
 
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,7 +12,8 @@ import java.util.Map;
  * Common return result
  */
 @Data
-public class CommonReturn<T> {
+public class CommonReturn<T> implements Serializable {
+    private static final long serialVersionUID = -442693984497024602L;
     private Integer code;
     private String msg;
     private T data;
