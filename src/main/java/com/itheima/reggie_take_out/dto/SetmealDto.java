@@ -4,6 +4,7 @@ import com.itheima.reggie_take_out.entity.Setmeal;
 import com.itheima.reggie_take_out.entity.SetmealDish;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -11,7 +12,9 @@ import java.util.List;
  * @date 2021/10/16
  */
 @Data
-public class SetmealDto extends Setmeal {
+public class SetmealDto extends Setmeal implements Serializable {
+
+    private static final long serialVersionUID = -1213014969915542111L;
     private List<SetmealDish> setmealDishes;
     private String categoryName;
 

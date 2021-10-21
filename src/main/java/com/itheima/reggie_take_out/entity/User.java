@@ -1,16 +1,18 @@
 package com.itheima.reggie_take_out.entity;
 
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
+
+import java.io.Serializable;
 
 /**
  * @author UMP90
  * @date 2021/10/17
  */
 @Data
-public class User {
+public class User implements Serializable {
+
+    private static final long serialVersionUID = 1338803395301956188L;
     @TableId
 
     private Long id;

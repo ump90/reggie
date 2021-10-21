@@ -1,10 +1,9 @@
 package com.itheima.reggie_take_out.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
@@ -13,8 +12,9 @@ import java.time.LocalDateTime;
  */
 @Data
 @TableName("setmeal_dish")
-public class SetmealDish {
+public class SetmealDish implements Serializable {
 
+    private static final long serialVersionUID = -3499369889147824080L;
     @TableId(type = IdType.ASSIGN_ID)
     private Long id;
 

@@ -9,12 +9,14 @@ import com.itheima.reggie_take_out.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author UMP90
@@ -33,6 +35,8 @@ public class DishDtoServiceImpl implements DishDtoService {
     private SetmealDishService setmealDishService;
     @Autowired
     private SetmealService setmealService;
+    @Autowired
+    private RedisTemplate<Object, Object> redisTemplate;
 
     @Override
     public CommonReturn<?> save(DishDto dishDto) {
@@ -45,16 +49,20 @@ public class DishDtoServiceImpl implements DishDtoService {
     public CommonReturn<?> saveWithFlavor(DishDto dishDto) {
         this.save(dishDto);
         Long id = dishDto.getId();
-
         List<DishFlavor> dishFlavors = dishDto.getFlavors();
         dishFlavors.forEach(s -> {
             s.setDishId(id);
         });
+        String key = "dish_" + dishDto.getId() + "_" + dishDto.getStatus();
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
+            redisTemplate.delete(key);
+        }
         if (dishFlavorService.saveBatch(dishFlavors)) {
             return CommonReturn.success("Add dish with flavors success");
         } else {
             return CommonReturn.error("Fail to add dish with flavors");
         }
+
 
     }
 
@@ -71,16 +79,25 @@ public class DishDtoServiceImpl implements DishDtoService {
 
         List<DishDto> dishDtoList = new ArrayList<>();
 
-        list.forEach(dish -> {
+        for (Dish dish : list) {
+            String key = "dish_" + dish.getId() + "_" + dish.getStatus();
+            boolean is_Cache = Boolean.TRUE.equals(redisTemplate.hasKey(key));
             DishDto dishDto = new DishDto();
-            BeanUtils.copyProperties(dish, dishDto);
-            Long categoryId = dishService.getById(dish.getId()).getCategoryId();
-            String categoryName = categoryService.getById(categoryId).getName();
-            if (categoryName != null) {
-                dishDto.setCategoryName(categoryName);
+            if (is_Cache) {
+                dishDto = (DishDto) redisTemplate.opsForValue().get(key);
+                dishDtoList.add(dishDto);
+            } else {
+                BeanUtils.copyProperties(dish, dishDto);
+                Long categoryId = dishService.getById(dish.getId()).getCategoryId();
+                String categoryName = categoryService.getById(categoryId).getName();
+                if (categoryName != null) {
+                    dishDto.setCategoryName(categoryName);
+                }
+                dishDtoList.add(dishDto);
+                redisTemplate.opsForValue().set(key, dishDto, 300, TimeUnit.SECONDS);
             }
-            dishDtoList.add(dishDto);
-        });
+        }
+
         dishDtoPage.setRecords(dishDtoList);
         return CommonReturn.success(dishDtoPage);
 
@@ -89,12 +106,19 @@ public class DishDtoServiceImpl implements DishDtoService {
     @Override
     public CommonReturn<?> getByIdWithFlavor(Long id) {
         Dish dish = dishService.getById(id);
-        LambdaQueryWrapper<DishFlavor> lambdaQueryWrapper = new LambdaQueryWrapper<>();
-        lambdaQueryWrapper.eq(DishFlavor::getDishId, dish.getId());
-        List<DishFlavor> flavors = dishFlavorService.list(lambdaQueryWrapper);
+        String key = "dish_" + dish.getId() + "_" + dish.getStatus();
+        boolean is_Cache = Boolean.TRUE.equals(redisTemplate.hasKey(key));
         DishDto dishDto = new DishDto();
-        BeanUtils.copyProperties(dish, dishDto);
-        dishDto.setFlavors(flavors);
+        if (is_Cache) {
+            dishDto = (DishDto) redisTemplate.opsForValue().get(key);
+        } else {
+            LambdaQueryWrapper<DishFlavor> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+            lambdaQueryWrapper.eq(DishFlavor::getDishId, dish.getId());
+            List<DishFlavor> flavors = dishFlavorService.list(lambdaQueryWrapper);
+            BeanUtils.copyProperties(dish, dishDto);
+            dishDto.setFlavors(flavors);
+            redisTemplate.opsForValue().set(key, dishDto, 300, TimeUnit.SECONDS);
+        }
         return CommonReturn.success(dishDto);
     }
 
@@ -114,6 +138,10 @@ public class DishDtoServiceImpl implements DishDtoService {
                     dishFlavorService.save(dishFlavor);
                 }
         );
+        String key = "dish_" + dishDto.getId() + "_" + dishDto.getStatus();
+        if (Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
+            redisTemplate.delete(key);
+        }
 
         return CommonReturn.success("Update dish success");
 
@@ -129,19 +157,24 @@ public class DishDtoServiceImpl implements DishDtoService {
 
         ArrayList<DishDto> dishDtoArrayList = new ArrayList<>();
 
-        dishList.forEach(dish -> {
+        for (Dish dish : dishList) {
             DishDto dishDto = new DishDto();
-            BeanUtils.copyProperties(dish, dishDto);
-            Category category = categoryService.getById(dish.getCategoryId());
-            dishDto.setCategoryName(category.getName());
-            LambdaQueryWrapper<DishFlavor> dishFlavorLambdaQueryWrapper = new LambdaQueryWrapper<>();
-            dishFlavorLambdaQueryWrapper.eq(DishFlavor::getDishId, dish.getId());
-            List<DishFlavor> dishFlavorList = dishFlavorService.list(dishFlavorLambdaQueryWrapper);
-            dishDto.setFlavors(dishFlavorList);
+            String key = "dish_" + dish.getId() + "_" + dish.getStatus();
+            boolean is_Cache = Boolean.TRUE.equals(redisTemplate.hasKey(key));
+            if (is_Cache) {
+                dishDto = (DishDto) redisTemplate.opsForValue().get(key);
+            } else {
+                BeanUtils.copyProperties(dish, dishDto);
+                Category category = categoryService.getById(dish.getCategoryId());
+                dishDto.setCategoryName(category.getName());
+                LambdaQueryWrapper<DishFlavor> dishFlavorLambdaQueryWrapper = new LambdaQueryWrapper<>();
+                dishFlavorLambdaQueryWrapper.eq(DishFlavor::getDishId, dish.getId());
+                List<DishFlavor> dishFlavorList = dishFlavorService.list(dishFlavorLambdaQueryWrapper);
+                dishDto.setFlavors(dishFlavorList);
+                redisTemplate.opsForValue().set(key, dishDto, 300, TimeUnit.SECONDS);
+            }
             dishDtoArrayList.add(dishDto);
-
-        });
-
+        }
         return CommonReturn.success(dishDtoArrayList);
 
     }

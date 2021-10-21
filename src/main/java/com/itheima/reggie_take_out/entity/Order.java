@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
@@ -13,8 +14,9 @@ import java.time.LocalDateTime;
  */
 @TableName("orders")
 @Data
-public class Order {
+public class Order implements Serializable {
 
+    private static final long serialVersionUID = -3129214238114373035L;
     @TableId(type = IdType.ASSIGN_ID)
 
     private Long id;

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
@@ -13,8 +14,10 @@ import java.time.LocalDateTime;
  */
 @Data
 @TableName("setmeal")
-public class Setmeal {
+public class Setmeal implements Serializable {
 
+
+    private static final long serialVersionUID = -5084660528134603842L;
     @JsonSerialize(using = ToStringSerializer.class)
     @TableId(type = IdType.ASSIGN_ID)
     private Long id;

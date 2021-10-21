@@ -1,10 +1,9 @@
 package com.itheima.reggie_take_out.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
@@ -12,7 +11,9 @@ import java.time.LocalDateTime;
  * @date 2021/10/14
  */
 @Data
-public class AddressBook {
+public class AddressBook implements Serializable {
+
+    private static final long serialVersionUID = 1454706359007401249L;
     @TableId(type = IdType.ASSIGN_ID)
 
     private Long id;
