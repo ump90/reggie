@@ -19,8 +19,8 @@ jobs:
     - name: Build with Maven
       run: mvn --batch-mode --update-snapshots verify && mkdir staging
     - name: Upload jar
-      run: mkdir staging && cp target/*.jar staging
+      run: mkdir tmpdir && cp target/*.jar tmpdir
     - uses: actions/upload-artifact@v2
       with:
         name: Package
-        path: staging
+        path: tmpdir
