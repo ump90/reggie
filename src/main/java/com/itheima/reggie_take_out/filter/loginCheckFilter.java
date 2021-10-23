@@ -45,7 +45,11 @@ public class loginCheckFilter implements Filter {
                 "/**/login",
                 "/**/login.html",
                 "/**/fonts/**/*",
-                "/**/sendMsg"
+                "/**/sendMsg",
+                "/doc.html",
+                "/webjars/**",
+                "/swagger-resources",
+                "/**/api-docs"
         };
         log.info("请求 URI:" + requestURI);
         if (checkUrl(requestURI, unfilteredUrl)) {
@@ -55,7 +59,7 @@ public class loginCheckFilter implements Filter {
             Long employeeId = (Long) request.getSession().getAttribute("employee");
             Long userId = (Long) request.getSession().getAttribute("user");
             if (employeeId != null) {
-                log.info("URI: " + requestURI + "Employee " + employeeId + " 已登录，放行请求");
+                log.info("URI: " + requestURI + "-> Employee " + employeeId + " 已登录，放行请求");
                 Long id = (Long) request.getSession().getAttribute("employee");
                 BaseContext.setId(id);
                 filterChain.doFilter(request, response);

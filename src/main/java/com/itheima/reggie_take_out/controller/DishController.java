@@ -23,7 +23,7 @@ public class DishController {
         return dishDtoService.saveWithFlavor(dishDto);
     }
 
-    @RequestMapping("/page")
+    @GetMapping("/page")
     public CommonReturn<?> list(@RequestParam Integer page, @RequestParam Integer pageSize, @RequestParam(required = false) String name) {
         return dishDtoService.list(page, pageSize, name);
     }
